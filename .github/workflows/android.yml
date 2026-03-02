@@ -28,33 +28,23 @@ jobs:
           cd app
           flutter create --platforms=android --org com.g0dm1ke.system --project-name system_level_up .
 
-      - name: Copy SYSTEM source into project
+      - name: Copy SYSTEM source
         run: |
           cp src/pubspec.yaml app/pubspec.yaml
           rm -rf app/lib
           cp -R src/lib app/lib
 
-      - name: Flutter doctor
+      - name: Build release APK
         run: |
           cd app
-          flutter doctor -v
+          flutter pub get
+          flutter build apk --release
 
-      - name: Pub get (verbose)
+      - name: Find APK
         run: |
-          cd app
-          flutter pub get -v
-
-      - name: Build release APK (VERBOSE + save log)
-        run: |
-          cd app
-          flutter build apk --release -v 2>&1 | tee ../build-log.txt
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: SYSTEM-build-logs
-          path: build-log.txt
+          find . -name "*.apk"
 
       - uses: actions/upload-artifact@v4
         with:
           name: SYSTEM-release-apk
-          path: app/build/app/outputs/flutter-apk/app-release.apk
+          path: "**/*.apk"
