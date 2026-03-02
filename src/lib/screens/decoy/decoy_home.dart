@@ -16,22 +16,24 @@ class _DecoyHomeState extends State<DecoyHome> {
   Future<void> _unlockFlow() async {
     final secretEnabled = await LockService.isSecretEnabled();
 
-    // First-time setup (set PINs) if secret not enabled yet
+    // First-time setup
     if (!secretEnabled) {
       if (!mounted) return;
       await _showSetupPinsDialog();
       return;
     }
 
-    // Attempt biometric first
+    // Biometric first
     final okBio = await LockService.biometricAuth();
     if (okBio) {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeShell()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeShell()),
+      );
       return;
     }
 
-    // Fallback to PIN
+    // Fallback PIN
     if (!mounted) return;
     await _showPinDialog();
   }
@@ -47,7 +49,7 @@ class _DecoyHomeState extends State<DecoyHome> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Create a PIN for SYSTEM. Also create a Panic PIN that keeps you in Decoy Mode.'),
+            const Text('Create a PIN for SYSTEM.\nCreate a Panic PIN that keeps you in Decoy Mode.'),
             const SizedBox(height: 12),
             TextField(
               controller: pinCtrl,
@@ -109,10 +111,12 @@ class _DecoyHomeState extends State<DecoyHome> {
               }
               if (entered == pin) {
                 Navigator.pop(context);
-                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeShell()));
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const HomeShell()),
+                );
                 return;
               }
-              _toast('ERROR 0xSAVAGE: Wrong PIN. Too much power detected.');
+              _toast('ERROR 0xSAVAGE: Wrong PIN.');
             },
             child: const Text('Unlock'),
           ),
@@ -123,7 +127,9 @@ class _DecoyHomeState extends State<DecoyHome> {
 
   void _toast(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 2)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+    );
   }
 
   void _helpTapped() {
@@ -148,8 +154,8 @@ class _DecoyHomeState extends State<DecoyHome> {
                 logoTapCount++;
                 if (logoTapCount >= 7) {
                   Navigator.pop(context);
-                  _toast('ERROR: Productivity overflow. Switching systems…');
-                  Future.delayed(const Duration(milliseconds: 400), _unlockFlow);
+                  _toast('Installing more RAM…');
+                  Future.delayed(const Duration(milliseconds: 350), _unlockFlow);
                 }
               },
               child: Container(
@@ -158,7 +164,10 @@ class _DecoyHomeState extends State<DecoyHome> {
                   border: Border.all(color: Colors.white24),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('🪟 SYSTEM 3.11 FOR WORKGROUPS\n(Definitely Legit)', textAlign: TextAlign.center),
+                child: const Text(
+                  '🪟 SYSTEM 3.11 FOR WORKGROUPS\n(Definitely Legit)',
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -181,14 +190,14 @@ class _DecoyHomeState extends State<DecoyHome> {
       body: SafeArea(
         child: Column(
           children: [
-            // Fake title bar
+            // Fake title bar (long-press = unlock)
             GestureDetector(
               onLongPress: _unlockFlow,
               child: Container(
                 color: Colors.blueGrey.shade800,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Text('SYSTEM 3.1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     SizedBox(width: 10),
                     Expanded(child: Text('Productivity Shell (Not Suspicious)', style: TextStyle(color: Colors.white70))),
@@ -212,7 +221,7 @@ class _DecoyHomeState extends State<DecoyHome> {
               ),
             ),
 
-            // Fake Program Manager window
+            // Fake Program Manager
             Expanded(
               child: Center(
                 child: Container(
@@ -238,267 +247,69 @@ class _DecoyHomeState extends State<DecoyHome> {
                         children: [
                           _IconButton(label: 'Calc-U-L8R', icon: '🧮', onTap: () => _toast('Calculating your excuses…')),
                           _IconButton(label: 'Notepad of Destiny', icon: '📝', onTap: () => _toast('Saving to floppy… (99% done)')),
-                          _IconButton(label
-
-cat > src/lib/screens/real/home_shell.dart <<'EOF'
-import 'package:flutter/material.dart';
-import 'dashboard.dart';
-import 'quests.dart';
-import 'stats.dart';
-import 'supplements.dart';
-import 'journal.dart';
-
-class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
-
-  @override
-  State<HomeShell> createState() => _HomeShellState();
-}
-
-class _HomeShellState extends State<HomeShell> {
-  int index = 0;
-
-  final pages = const [
-    DashboardScreen(),
-    QuestsScreen(),
-    StatsScreen(),
-    SupplementsScreen(),
-    JournalScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: pages[index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) => setState(() => index = i),
-cat > src/lib/screens/real/quests.dart <<'EOF'
-import 'package:flutter/material.dart';
-import '../../models/quest.dart';
-import '../../services/prefs.dart';
-import '../../services/xp_service.dart';
-
-class QuestsScreen extends StatefulWidget {
-  const QuestsScreen({super.key});
-
-  @override
-  State<QuestsScreen> createState() => _QuestsScreenState();
-}
-
-class _QuestsScreenState extends State<QuestsScreen> {
-  final quests = const <Quest>[
-    Quest(id: 'water', title: 'Hydration Rune — 2L water', xp: 15, easyTitle: 'Hydration Rune — 1.5L water', easyXp: 10),
-    Quest(id: 'protein', title: 'Protein Anchor — 40g+ protein hit', xp: 15, easyTitle: 'Protein Anchor — 25g protein hit', easyXp: 10),
-    Quest(id: 'steps', title: 'Step Quest — 10 min OR 1000 steps', xp: 20, easyTitle: 'Step Quest — 5
-cat > src/lib/screens/real/quests.dart <<'EOF'
-import 'package:flutter/material.dart';
-import '../../models/quest.dart';
-import '../../services/prefs.dart';
-import '../../services/xp_service.dart';
-
-class QuestsScreen extends StatefulWidget {
-  const QuestsScreen({super.key});
-
-  @override
-  State<QuestsScreen> createState() => _QuestsScreenState();
-}
-
-class _QuestsScreenState extends State<QuestsScreen> {
-  final quests = const <Quest>[
-    Quest(id: 'water', title: 'Hydration Rune — 2L water', xp: 15, easyTitle: 'Hydration Rune — 1.5L water', easyXp: 10),
-    Quest(id: 'protein', title: 'Protein Anchor — 40g+ protein hit', xp: 15, easyTitle: 'Protein Anchor — 25g protein hit', easyXp: 10),
-    Quest(id: 'steps', title: 'Step Quest — 10 min OR 1000 steps', xp: 20, easyTitle: 'Step Quest — 5 min', easyXp: 10),
-    Quest(id: 'knee', title: 'Knee Armor — 5 min rehab/mobility', xp: 20, easyTitle: 'Knee Armor — 2 min', easyXp: 10),
-    Quest(id: 'drinks', title: 'No Liquid Calories — no sweet drinks', xp: 15, easyTitle: 'Limit sweet drinks to 1', easyXp: 5),
-    Quest(id: 'sleep', title: 'Sleep Shield — set bedtime + prep', xp: 10, easyTitle: 'Set alarm + prep', easyXp: 5),
-    Quest(id: 'core', title: 'Core Stability — 5 min', xp: 15, easyTitle: 'Core Stability — 2 min', easyXp: 8),
-    Quest(id: 'traps', title: 'Trap/Neck Forge — 3 sets', xp: 15, easyTitle: 'Trap/Neck Forge — 1 set', easyXp: 7),
-    Quest(id: 'arsenal', title: 'Arsenal Check — meds/supps + log', xp: 10, easyTitle: 'Log it even if missed', easyXp: 3),
-    Quest(id: 'log', title: 'System Log — enter ONE metric', xp: 10, easyTitle: 'Write 1 journal line', easyXp: 5),
-  ];
-
-  String day = '';
-  Map<String, dynamic> state = {};
-  int totalXp = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    day = await Prefs.todayKey();
-    state = await XpService.getDayState(day);
-    totalXp = await XpService.getTotalXp();
-    if (state['dayXp'] == null) state['dayXp'] = 0;
-    if (state['done'] == null) state['done'] = <String, dynamic>{};
-    if (state['easy'] == null) state['easy'] = <String, dynamic>{};
-    await XpService.saveDayState(day, state);
-    setState(() {});
-  }
-
-  bool _isDone(String id) => (state['done'] as Map).containsKey(id) ? (state['done'][id] == true) : false;
-  bool _isEasy(String id) => (state['easy'] as Map).containsKey(id) ? (state['easy'][id] == true) : false;
-
-  int _dayXp() => (state['dayXp'] as int?) ?? 0;
-
-  int _questXp(Quest q) => XpService.questXp(q, easyMode: _isEasy(q.id));
-
-  Future<void> _toggleDone(Quest q, bool v) async {
-    final done = Map<String, dynamic>.from(state['done'] as Map);
-    final easy = Map<String, dynamic>.from(state['easy'] as Map);
-    final wasDone = done[q.id] == true;
-
-    // compute delta xp based on change
-    final xpVal = XpService.questXp(q, easyMode: (easy[q.id] == true));
-    int dayXp = _dayXp();
-    int newTotal = totalXp;
-
-    if (!wasDone && v) {
-      dayXp += xpVal;
-      newTotal += xpVal;
-    } else if (wasDone && !v) {
-      dayXp -= xpVal;
-      newTotal -= xpVal;
-    }
-
-    done[q.id] = v;
-    state['done'] = done;
-    state['dayXp'] = dayXp;
-
-    totalXp = newTotal;
-    await XpService.setTotalXp(totalXp);
-    await XpService.saveDayState(day, state);
-
-    // Minimum day = 3 quests complete
-    final completed = done.values.where((x) => x == true).length;
-    await XpService.updateMinDayAchieved(day: day, achieved: completed >= 3);
-
-    setState(() {});
-  }
-
-  Future<void> _toggleEasy(Quest q, bool v) async {
-    final done = Map<String, dynamic>.from(state['done'] as Map);
-    final easy = Map<String, dynamic>.from(state['easy'] as Map);
-
-    final wasEasy = easy[q.id] == true;
-    final isDone = done[q.id] == true;
-
-    // if quest already done, changing easy mode changes xp
-    int dayXp = _dayXp();
-    int newTotal = totalXp;
-
-    if (isDone) {
-      final oldXp = XpService.questXp(q, easyMode: wasEasy);
-      final newXp = XpService.questXp(q, easyMode: v);
-      final delta = newXp - oldXp;
-      dayXp += delta;
-      newTotal += delta;
-    }
-
-    easy[q.id] = v;
-    state['easy'] = easy;
-    state['dayXp'] = dayXp;
-
-    totalXp = newTotal;
-    await XpService.setTotalXp(totalXp);
-    await XpService.saveDayState(day, state);
-
-    setState(() {});
-  }
-
-  String _rankFromXp(int xp) {
-    if (xp >= 125) return 'S';
-    if (xp >= 100) return 'A';
-    if (xp >= 75) return 'B';
-    if (xp >= 50) return 'C';
-    if (xp >= 25) return 'D';
-    return 'E';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final doneMap = (state['done'] as Map?) ?? {};
-    final completed = doneMap.values.where((x) => x == true).length;
-    final dayXp = _dayXp();
-    final rank = _rankFromXp(dayXp);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Dungeon Daily — $day'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(child: Text('Rank $rank  •  $completed/10')),
-          )
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text('XP today: $dayXp   •   Total XP: $totalXp'),
-            ),
-          ),
-          const SizedBox(height: 10),
-          for (final q in quests)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _isDone(q.id),
-                          onChanged: (v) => _toggleDone(q, v ?? false),
+                          _IconButton(label: 'Totally Normal Files', icon: '📁', onTap: () => _toast('Folder opened: TAXES_1997')),
+                          _IconButton(label: 'Brain Tips', icon: '🧠', onTap: () => _toast('Tip: Sleep is not optional.')),
+                          _IconButton(label: 'Motivation 95', icon: '💬', onTap: () => _toast('Quote: “Discipline is spite with a calendar.”')),
+                          _IconButton(label: 'Minesweeper', icon: '🕹', onTap: () => _toast('BOOM. Productivity exploded.')),
+                        ],
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(border: Border.all(color: Colors.black54)),
+                        child: const Text(
+                          'Status: Ready.\nWarning: Productivity levels exceed safe limits.\nInsert coffee to continue.',
+                          style: TextStyle(fontSize: 12),
                         ),
-                        Expanded(
-                          child: Text(
-                            _isEasy(q.id) ? q.easyTitle : q.title,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text('${_questXp(q)} XP'),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const SizedBox(width: 48),
-                        Expanded(
-                          child: Row(
-                            children: [
-                              const Text('Easy Mode'),
-                              Switch(
-                                value: _isEasy(q.id),
-                                onChanged: (v) => _toggleEasy(q, v),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                'Knee flare override: if knee pain is high, your streak saver is:\n'
-                'Hydration Rune + Knee Armor + System Log (3 quests).',
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuItem extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+  const _MenuItem({required this.text, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        onTap: onTap,
+        child: Text(text, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+}
+
+class _IconButton extends StatelessWidget {
+  final String label;
+  final String icon;
+  final VoidCallback onTap;
+  const _IconButton({required this.label, required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        width: 150,
+        child: Row(
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 22)),
+            const SizedBox(width: 8),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.black87))),
+          ],
+        ),
       ),
     );
   }
